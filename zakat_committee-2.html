@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لجنة زكاة منيل العروس</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c; --gold-light: #e8c97e; --gold-dark: #a07830;
+    --green: #1a4731; --green-light: #2d6b47; --green-mid: #225a3c;
+    --bg: #0e1f17; --bg2: #122819; --card: #172e1f; --card2: #1e3a28;
+    --text: #f0ead8; --text-muted: #a09070; --border: #2a4a32;
+    --red: #c0392b; --red-light: #e74c3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; direction: rtl; }
+
+  /* LOADER */
+  #loader {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 999; gap: 16px;
+  }
+  .spinner {
+    width: 48px; height: 48px; border: 4px solid var(--border);
+    border-top-color: var(--gold); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loader p { color: var(--text-muted); font-size: 14px; }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--green) 0%, var(--bg) 100%);
+    border-bottom: 2px solid var(--gold-dark);
+    padding: 20px 30px; display: flex; align-items: center; gap: 20px;
+    position: relative; overflow: hidden;
+  }
+  header::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23c9a84c' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .logo-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    border-radius: 16px; display: flex; align-items: center; justify-content: center;
+    font-size: 32px; box-shadow: 0 4px 20px rgba(201,168,76,0.3); flex-shrink: 0;
+  }
+  .header-text h1 { font-family: 'Amiri', serif; font-size: 26px; color: var(--gold-light); line-height: 1.3; }
+  .header-text p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .header-actions { margin-right: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* STATS */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; padding: 16px 20px; background: var(--bg2); border-bottom: 1px solid var(--border);
+  }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; text-align: center; }
+  .stat-num { font-size: 28px; font-weight: 900; color: var(--gold); line-height: 1; }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  /* LAYOUT */
+  .container { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 160px); }
+  .sidebar { background: var(--bg2); border-left: 1px solid var(--border); padding: 20px 16px; overflow-y: auto; }
+  .sidebar-title { font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .member-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; border: 1px solid transparent; }
+  .member-item:hover { background: var(--card); border-color: var(--border); }
+  .member-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; border: 2px solid var(--gold-dark); }
+  .member-name-s { font-size: 13px; font-weight: 600; }
+  .member-role-s { font-size: 11px; color: var(--text-muted); }
+
+  .main { padding: 20px; overflow-y: auto; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; background: var(--card); border-radius: 12px; padding: 6px; border: 1px solid var(--border); }
+  .tab { flex: 1; padding: 9px 14px; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .tab.active { background: var(--green-light); color: var(--gold-light); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* MEMBERS GRID */
+  .members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+  .member-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; text-align: center; transition: all 0.25s; position: relative; overflow: hidden; }
+  .member-card:hover { border-color: var(--gold-dark); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .card-avatar { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; margin: 0 auto 12px; border: 3px solid var(--gold-dark); }
+  .card-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .card-role { font-size: 12px; color: var(--gold); font-weight: 600; }
+  .card-stats { display: flex; justify-content: center; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .cs { text-align: center; }
+  .cs-num { font-size: 16px; font-weight: 700; color: var(--gold-light); }
+  .cs-label { font-size: 10px; color: var(--text-muted); }
+
+  /* FORM */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-title { font-size: 16px; font-weight: 700; color: var(--gold-light); display: flex; align-items: center; gap: 8px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+  input, select, textarea { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Cairo', sans-serif; font-size: 13px; padding: 10px 12px; outline: none; transition: border 0.2s; direction: rtl; width: 100%; }
+  input:focus, select:focus, textarea:focus { border-color: var(--gold-dark); }
+  select option { background: var(--card2); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* BUTTONS */
+  .btn { padding: 10px 20px; border-radius: 8px; border: none; font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: var(--green); }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-danger:hover { background: var(--red-light); }
+  .btn-ghost { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--gold-dark); }
+
+  /* TABLE */
+  .table-wrapper { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--green); }
+  th { padding: 12px 14px; text-align: right; font-size: 12px; font-weight: 700; color: var(--gold-light); }
+  td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-green { background: rgba(45,107,71,0.3); color: #4caf82; border: 1px solid #2d6b47; }
+  .badge-gold { background: rgba(201,168,76,0.2); color: var(--gold-light); border: 1px solid var(--gold-dark); }
+  .badge-red { background: rgba(192,57,43,0.2); color: #e07060; border: 1px solid var(--red); }
+  .badge-blue { background: rgba(52,152,219,0.2); color: #80bfdf; border: 1px solid #2980b9; }
+
+  .form-box { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+  .dist-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .dist-row:last-child { border-bottom: none; }
+  .dist-name { font-weight: 600; font-size: 14px; }
+  .dist-amount { font-size: 18px; font-weight: 900; color: var(--gold); }
+  .dist-count { font-size: 12px; color: var(--text-muted); }
+
+  .search-bar { position: relative; margin-bottom: 16px; }
+  .search-bar input { padding-right: 40px; }
+  .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 16px; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--gold-dark); border-radius: 20px; padding: 28px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+  .modal-title { font-family: 'Amiri', serif; font-size: 20px; color: var(--gold-light); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  .empty { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--green-light); border: 1px solid var(--gold-dark); color: var(--gold-light); padding: 12px 24px; border-radius: 40px; font-size: 13px; font-weight: 700; z-index: 200; transition: transform 0.3s; pointer-events: none; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* CONNECTION STATUS */
+  .conn-status { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--card2); }
+  .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #4caf82; animation: pulse 2s infinite; }
+  .conn-dot.offline { background: var(--red); animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  @media(max-width:768px) {
+    .container { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .stats-bar { grid-template-columns: repeat(2,1fr); }
+    .form-grid { grid-template-columns: 1fr; }
+    .members-grid { grid-template-columns: repeat(2,1fr); }
+    .header-actions { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="logo-icon" style="width:72px;height:72px;font-size:36px">🕌</div>
+  <div class="spinner"></div>
+  <p>جاري الاتصال بقاعدة البيانات...</p>
+</div>
+
+<header>
+  <div class="logo-icon">🕌</div>
+  <div class="header-text">
+    <h1>لجنة زكاة منيل العروس</h1>
+    <p>نظام إدارة الأعضاء والمستفيدين والتوزيعات</p>
+  </div>
+  <div class="header-actions">
+    <div class="conn-status"><div class="conn-dot" id="conn-dot"></div><span id="conn-text">متصل</span></div>
+    <button class="btn btn-primary" onclick="openModal('addBeneficiary')">➕ مستفيد جديد</button>
+    <button class="btn btn-ghost" onclick="openModal('addTransaction')">💰 معاملة جديدة</button>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat-card"><div class="stat-num" id="stat-members">—</div><div class="stat-label">👥 إجمالي الأعضاء</div></div>
+  <div class="stat-card"><div class="stat-num" id="stat-beneficiaries">—</div><div class="stat-label">🤲 المستفيدون</div></div>
+  <div class="stat-card"><div class="stat-num" id="stat-collected">—</div><div class="stat-label">💰 المحصّل (ج.م)</div></div>
+  <div class="stat-card"><div class="stat-num" id="stat-distributed">—</div><div class="stat-label">📤 الموزّع (ج.م)</div></div>
+</div>
+
+<div class="container">
+  <aside class="sidebar">
+    <div class="sidebar-title">🕌 أعضاء اللجنة</div>
+    <div id="sidebar-members"></div>
+  </aside>
+  <main class="main">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('members')">👥 الأعضاء</button>
+      <button class="tab" onclick="switchTab('beneficiaries')">🤲 المستفيدون</button>
+      <button class="tab" onclick="switchTab('transactions')">💰 المعاملات</button>
+      <button class="tab" onclick="switchTab('distribution')">📤 التوزيعات</button>
+      <button class="tab" onclick="switchTab('reports')">📊 التقارير</button>
+    </div>
+
+    <!-- MEMBERS -->
+    <div class="panel active" id="panel-members">
+      <div class="section-header">
+        <div class="section-title">👥 أعضاء اللجنة</div>
+        <button class="btn btn-primary" onclick="openModal('editMember')">✏️ تعديل عضو</button>
+      </div>
+      <div class="members-grid" id="members-grid"></div>
+    </div>
+
+    <!-- BENEFICIARIES -->
+    <div class="panel" id="panel-beneficiaries">
+      <div class="section-header">
+        <div class="section-title">🤲 قائمة المستفيدين</div>
+        <button class="btn btn-primary" onclick="openModal('addBeneficiary')">➕ إضافة مستفيد</button>
+      </div>
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="ابحث عن مستفيد..." oninput="filterBeneficiaries(this.value)">
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>#</th><th>الاسم</th><th>الهاتف</th><th>الحالة</th><th>الأسرة</th><th>المسؤول</th><th>الأولوية</th><th>حذف</th></tr></thead>
+          <tbody id="beneficiaries-table"></tbody>
+        </table>
+        <div class="empty" id="empty-beneficiaries" style="display:none"><div class="empty-icon">🤲</div>لا يوجد مستفيدون مسجلون</div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="panel" id="panel-transactions">
+      <div class="section-header">
+        <div class="section-title">💰 سجل المعاملات</div>
+        <button class="btn btn-primary" onclick="openModal('addTransaction')">➕ معاملة جديدة</button>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>التاريخ</th><th>النوع</th><th>المبلغ</th><th>من/إلى</th><th>ملاحظات</th><th>المسؤول</th><th>حذف</th></tr></thead>
+          <tbody id="transactions-table"></tbody>
+        </table>
+        <div class="empty" id="empty-transactions" style="display:none"><div class="empty-icon">💰</div>لا توجد معاملات مسجلة</div>
+      </div>
+    </div>
+
+    <!-- DISTRIBUTION -->
+    <div class="panel" id="panel-distribution">
+      <div class="section-header">
+        <div class="section-title">📤 توزيع الزكاة</div>
+        <button class="btn btn-primary" onclick="openModal('addDistribution')">📤 تسجيل توزيع</button>
+      </div>
+      <div class="form-box">
+        <div id="distribution-list"><div class="empty"><div class="empty-icon">📤</div>لا توجد توزيعات مسجلة</div></div>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="panel" id="panel-reports">
+      <div class="section-title" style="margin-bottom:16px">📊 التقارير والإحصاءات</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" id="reports-grid"></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL: ADD BENEFICIARY -->
+<div class="modal-overlay" id="modal-addBeneficiary">
+  <div class="modal">
+    <div class="modal-title">➕ إضافة مستفيد جديد</div>
+    <div class="form-grid">
+      <div class="form-group full"><label>اسم المستفيد *</label><input type="text" id="b-name" placeholder="الاسم بالكامل"></div>
+      <div class="form-group"><label>رقم الهاتف</label><input type="text" id="b-phone" placeholder="01xxxxxxxxx"></div>
+      <div class="form-group"><label>العنوان</label><input type="text" id="b-address" placeholder="الحي / الشارع"></div>
+      <div class="form-group"><label>عدد أفراد الأسرة</label><input type="number" id="b-family" placeholder="عدد الأفراد" min="1"></div>
+      <div class="form-group"><label>الحالة الاجتماعية</label>
+        <select id="b-status"><option>أرملة</option><option>مطلقة</option><option>فقير</option><option>مريض</option><option>يتيم</option><option>أخرى</option></select>
+      </div>
+      <div class="form-group"><label>الأولوية</label>
+        <select id="b-priority"><option value="عالية">🔴 عالية</option><option value="متوسطة">🟡 متوسطة</option><option value="عادية">🟢 عادية</option></select>
+      </div>
+      <div class="form-group"><label>العضو المسؤول</label><select id="b-member"></select></div>
+      <div class="form-group full"><label>ملاحظات</label><textarea id="b-notes" placeholder="أي تفاصيل إضافية..."></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addBeneficiary')">إلغاء</button>
+      <button class="btn btn-primary" onclick="addBeneficiary()">✅ حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD TRANSACTION -->
+<div class="modal-overlay" id="modal-addTransaction">
+  <div class="modal">
+    <div class="modal-title">💰 إضافة معاملة مالية</div>
+    <div class="form-grid">
+      <div class="form-group"><label>نوع المعاملة</label>
+        <select id="t-type"><option value="تحصيل">💵 تحصيل زكاة</option><option value="توزيع">📤 توزيع</option><option value="تبرع">🤝 تبرع</option><option value="مصروف">📋 مصروف إداري</option></select>
+      </div>
+      <div class="form-group"><label>المبلغ (ج.م)</label><input type="number" id="t-amount" placeholder="0.00" min="0"></div>
+      <div class="form-group"><label>التاريخ</label><input type="date" id="t-date"></div>
+      <div class="form-group"><label>العضو المسؤول</label><select id="t-member"></select></div>
+      <div class="form-group full"><label>من / إلى</label><input type="text" id="t-from" placeholder="اسم المُزكّي أو المستفيد"></div>
+      <div class="form-group full"><label>ملاحظات</label><textarea id="t-notes" placeholder="تفاصيل المعاملة..."></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addTransaction')">إلغاء</button>
+      <button class="btn btn-primary" onclick="addTransaction()">✅ حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD DISTRIBUTION -->
+<div class="modal-overlay" id="modal-addDistribution">
+  <div class="modal">
+    <div class="modal-title">📤 تسجيل توزيع زكاة</div>
+    <div class="form-grid">
+      <div class="form-group full"><label>المستفيد</label><select id="d-beneficiary"></select></div>
+      <div class="form-group"><label>المبلغ أو القيمة (ج.م)</label><input type="number" id="d-amount" placeholder="0.00" min="0"></div>
+      <div class="form-group"><label>نوع التوزيع</label>
+        <select id="d-kind"><option value="نقدي">💵 نقدي</option><option value="عيني">📦 عيني</option><option value="ملابس">👕 ملابس</option><option value="دواء">💊 دواء</option><option value="أخرى">📋 أخرى</option></select>
+      </div>
+      <div class="form-group"><label>التاريخ</label><input type="date" id="d-date"></div>
+      <div class="form-group"><label>العضو المسؤول</label><select id="d-member"></select></div>
+      <div class="form-group full"><label>ملاحظات</label><textarea id="d-notes" placeholder="تفاصيل التوزيع..."></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addDistribution')">إلغاء</button>
+      <button class="btn btn-primary" onclick="addDistribution()">✅ حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDIT MEMBER -->
+<div class="modal-overlay" id="modal-editMember">
+  <div class="modal">
+    <div class="modal-title">✏️ تعديل بيانات عضو</div>
+    <div class="form-grid">
+      <div class="form-group full"><label>اختر العضو</label><select id="em-select" onchange="loadMemberEdit()"></select></div>
+      <div class="form-group"><label>المنصب</label>
+        <select id="em-role"><option>رئيس اللجنة</option><option>أمين الصندوق</option><option>السكرتير</option><option>عضو</option><option>مراقب</option></select>
+      </div>
+      <div class="form-group"><label>رقم الهاتف</label><input type="text" id="em-phone" placeholder="01xxxxxxxxx"></div>
+      <div class="form-group full"><label>ملاحظات</label><textarea id="em-notes" placeholder="ملاحظات عن العضو..."></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('editMember')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveMemberEdit()">✅ حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ======== SUPABASE CONFIG ========
+const SUPA_URL = 'https://xpomdxhaiynbscvmaric.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhwb21keGhhaXluYnNjdm1hcmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNDA2MzEsImV4cCI6MjA5NTgxNjYzMX0.K6k5yXnWUadtoD4mBZpvk-ghxzYBgbs69W5nQHgTi3Q';
+
+const HEADERS = {
+  'apikey': SUPA_KEY,
+  'Authorization': 'Bearer ' + SUPA_KEY,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=representation'
+};
+
+async function sbGet(table, query='') {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?order=id${query}`, { headers: HEADERS });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbInsert(table, data) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, { method:'POST', headers: HEADERS, body: JSON.stringify(data) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbUpdate(table, id, data) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, { method:'PATCH', headers: HEADERS, body: JSON.stringify(data) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbDelete(table, id) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, { method:'DELETE', headers: HEADERS });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+// ======== STATE ========
+const COLORS = ['#e67e22','#27ae60','#2980b9','#8e44ad','#c0392b','#16a085','#d4ac0d','#1a5276'];
+const INITIALS = n => n.replace(/^(أ\.|م\.|الشيخ)\s*/,'').split(' ').map(p=>p[0]).join('').slice(0,2);
+
+let state = { members:[], beneficiaries:[], transactions:[], distributions:[] };
+
+// ======== UI HELPERS ========
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+function setConn(ok) {
+  document.getElementById('conn-dot').className = 'conn-dot' + (ok ? '' : ' offline');
+  document.getElementById('conn-text').textContent = ok ? 'متصل' : 'غير متصل';
+}
+function switchTab(name) {
+  const names = ['members','beneficiaries','transactions','distribution','reports'];
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', names[i]===name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if (name==='reports') renderReports();
+}
+function openModal(id) {
+  fillSelects();
+  const today = new Date().toISOString().split('T')[0];
+  if (id==='addBeneficiary') ['b-name','b-phone','b-address','b-family','b-notes'].forEach(x=>document.getElementById(x).value='');
+  if (id==='addTransaction') { document.getElementById('t-date').value=today; document.getElementById('t-amount').value=''; document.getElementById('t-from').value=''; document.getElementById('t-notes').value=''; }
+  if (id==='addDistribution') {
+    document.getElementById('d-date').value=today; document.getElementById('d-amount').value=''; document.getElementById('d-notes').value='';
+    const sel=document.getElementById('d-beneficiary');
+    sel.innerHTML = state.beneficiaries.length ? state.beneficiaries.map(b=>`<option value="${b.id}">${b.name}</option>`).join('') : '<option>لا يوجد مستفيدون</option>';
+  }
+  document.getElementById('modal-'+id).classList.add('open');
+}
+function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
+function fillSelects() {
+  ['b-member','t-member','em-select','d-member'].forEach(id => {
+    const el=document.getElementById(id); if(!el) return;
+    el.innerHTML = state.members.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  });
+}
+
+// ======== RENDER ========
+function renderAll() {
+  renderMembers(); renderBeneficiaries(); renderTransactions(); renderDistributions(); updateStats();
+}
+
+function renderMembers() {
+  const grid = document.getElementById('members-grid');
+  grid.innerHTML = state.members.map((m,i) => {
+    const txC = state.transactions.filter(t=>t.member_id==m.id).length;
+    const dC = state.distributions.filter(d=>d.member_id==m.id).length;
+    return `<div class="member-card">
+      <div class="card-avatar" style="background:${COLORS[i%8]}22;border-color:${COLORS[i%8]}">
+        <span style="color:${COLORS[i%8]}">${INITIALS(m.name)}</span>
+      </div>
+      <div class="card-name">${m.name}</div>
+      <div class="card-role">${m.role}</div>
+      ${m.phone?`<div style="font-size:11px;color:var(--text-muted);margin-top:4px">📱 ${m.phone}</div>`:''}
+      <div class="card-stats">
+        <div class="cs"><div class="cs-num">${txC}</div><div class="cs-label">معاملة</div></div>
+        <div class="cs"><div class="cs-num">${dC}</div><div class="cs-label">توزيع</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('sidebar-members').innerHTML = state.members.map((m,i) => `
+    <div class="member-item">
+      <div class="member-avatar" style="background:${COLORS[i%8]}22;border-color:${COLORS[i%8]};color:${COLORS[i%8]}">${INITIALS(m.name)}</div>
+      <div><div class="member-name-s">${m.name}</div><div class="member-role-s">${m.role}</div></div>
+    </div>`).join('');
+}
+
+function renderBeneficiaries(query='') {
+  const tbody=document.getElementById('beneficiaries-table'), empty=document.getElementById('empty-beneficiaries');
+  let list = state.beneficiaries;
+  if (query) list = list.filter(b=>b.name.includes(query)||(b.phone||'').includes(query));
+  if (!list.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const pc={عالية:'badge-red',متوسطة:'badge-gold',عادية:'badge-green'};
+  tbody.innerHTML = list.map((b,i)=>`<tr>
+    <td>${i+1}</td>
+    <td><strong>${b.name}</strong><br><small style="color:var(--text-muted)">${b.status||''}</small></td>
+    <td>${b.phone||'—'}</td>
+    <td><span class="badge badge-green">نشط</span></td>
+    <td style="text-align:center">${b.family_count||1}</td>
+    <td>${b.member_name||'—'}</td>
+    <td><span class="badge ${pc[b.priority]||'badge-blue'}">${b.priority||''}</span></td>
+    <td><button class="btn btn-danger" style="padding:5px 10px;font-size:11px" onclick="deleteBeneficiary(${b.id})">🗑️</button></td>
+  </tr>`).join('');
+}
+function filterBeneficiaries(q){ renderBeneficiaries(q); }
+
+function renderTransactions() {
+  const tbody=document.getElementById('transactions-table'), empty=document.getElementById('empty-transactions');
+  if (!state.transactions.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const tc={تحصيل:'badge-green',توزيع:'badge-gold',تبرع:'badge-blue',مصروف:'badge-red'};
+  const ti={تحصيل:'💵',توزيع:'📤',تبرع:'🤝',مصروف:'📋'};
+  tbody.innerHTML = [...state.transactions].reverse().map(t=>`<tr>
+    <td>${t.date||''}</td>
+    <td><span class="badge ${tc[t.type]||'badge-blue'}">${ti[t.type]||''} ${t.type}</span></td>
+    <td><strong style="color:var(--gold)">${Number(t.amount).toLocaleString('ar-EG')} ج.م</strong></td>
+    <td>${t.from_to||'—'}</td>
+    <td style="font-size:12px;color:var(--text-muted)">${t.notes||'—'}</td>
+    <td>${t.member_name||'—'}</td>
+    <td><button class="btn btn-danger" style="padding:5px 10px;font-size:11px" onclick="deleteTransaction(${t.id})">🗑️</button></td>
+  </tr>`).join('');
+}
+
+function renderDistributions() {
+  const el=document.getElementById('distribution-list');
+  if (!state.distributions.length) { el.innerHTML='<div class="empty"><div class="empty-icon">📤</div>لا توجد توزيعات مسجلة</div>'; return; }
+  el.innerHTML = [...state.distributions].reverse().map(d=>`
+    <div class="dist-row">
+      <div>
+        <div class="dist-name">🤲 ${d.beneficiary_name}</div>
+        <div class="dist-count">${d.kind} • ${d.date} • بواسطة: ${d.member_name||'—'}</div>
+        ${d.notes?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px">${d.notes}</div>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="dist-amount">${Number(d.amount).toLocaleString('ar-EG')} ج.م</div>
+        <button class="btn btn-danger" style="padding:5px 10px;font-size:11px" onclick="deleteDistribution(${d.id})">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function updateStats() {
+  document.getElementById('stat-members').textContent = state.members.length;
+  document.getElementById('stat-beneficiaries').textContent = state.beneficiaries.length;
+  const col = state.transactions.filter(t=>t.type==='تحصيل'||t.type==='تبرع').reduce((s,t)=>s+Number(t.amount),0);
+  const dist = state.distributions.reduce((s,d)=>s+Number(d.amount),0);
+  document.getElementById('stat-collected').textContent = col.toLocaleString('ar-EG');
+  document.getElementById('stat-distributed').textContent = dist.toLocaleString('ar-EG');
+}
+
+// ======== CRUD ========
+async function addBeneficiary() {
+  const name=document.getElementById('b-name').value.trim();
+  if (!name) { alert('من فضلك أدخل اسم المستفيد'); return; }
+  const mId=document.getElementById('b-member').value;
+  const member=state.members.find(m=>m.id==mId);
+  try {
+    const res = await sbInsert('beneficiaries', {
+      name, phone:document.getElementById('b-phone').value,
+      address:document.getElementById('b-address').value,
+      family_count:parseInt(document.getElementById('b-family').value)||1,
+      status:document.getElementById('b-status').value,
+      priority:document.getElementById('b-priority').value,
+      member_id:mId, member_name:member?.name||'',
+      notes:document.getElementById('b-notes').value
+    });
+    state.beneficiaries.push(res[0]);
+    closeModal('addBeneficiary'); renderBeneficiaries(); updateStats();
+    showToast('✅ تم إضافة المستفيد');
+  } catch(e) { showToast('❌ خطأ: '+e.message); }
+}
+
+async function deleteBeneficiary(id) {
+  if (!confirm('هل تريد حذف هذا المستفيد؟')) return;
+  try {
+    await sbDelete('beneficiaries', id);
+    state.beneficiaries = state.beneficiaries.filter(b=>b.id!==id);
+    renderBeneficiaries(); updateStats(); showToast('🗑️ تم الحذف');
+  } catch(e) { showToast('❌ خطأ: '+e.message); }
+}
+
+async function addTransaction() {
+  const amount=parseFloat(document.getElementById('t-amount').value);
+  if (!amount) { alert('من فضلك أدخل المبلغ'); return; }
+  const mId=document.getElementById('t-member').value;
+  const member=state.members.find(m=>m.id==mId);
+  try {
+    const res = await sbInsert('transactions', {
+      type:document.getElementById('t-type').value, amount,
+      date:document.getElementById('t-date').value,
+      from_to:document.getElementById('t-from').value,
+      notes:document.getElementById('t-notes').value,
+      member_id:mId, member_name:member?.name||''
+    });
+    state.transactions.push(res[0]);
+    closeModal('addTransaction'); renderTransactions(); updateStats();
+    showToast('✅ تم تسجيل المعاملة');
+  } catch(e) { showToast('❌ خطأ: '+e.message); }
+}
+
+async function deleteTransaction(id) {
+  if (!confirm('حذف هذه المعاملة؟')) return;
+  try {
+    await sbDelete('transactions', id);
+    state.transactions = state.transactions.filter(t=>t.id!==id);
+    renderTransactions(); updateStats(); showToast('🗑️ تم الحذف');
+  } catch(e) { showToast('❌ خطأ: '+e.message); }
+}
+
+async function addDistribution() {
+  const amount=parseFloat(document.getElementById('d-amount').value);
+  if (!amount) { alert('من فضلك أدخل المبلغ'); return; }
+  const bId=document.getElementById('d-beneficiary').value;
+  const ben=state.beneficiaries.find(b=>b.id==bId);
+  const mId=document.getElementById('d-member').value;
+  const member=state.members.find(m=>m.id==mId);
+  try {
+    const res = await sbInsert('distributions', {
+      beneficiary_id:bId, beneficiary_name:ben?.name||'غير محدد',
+      amount, kind:document.getElementById('d-kind').value,
+      date:document.getElementById('d-date').value,
+      notes:document.getElementById('d-notes').value,
+      member_id:mId, member_name:member?.name||''
+    });
+    state.distributions.push(res[0]);
+    closeModal('addDistribution'); renderDistributions(); updateStats();
+    showToast('✅ تم تسجيل التوزيع');
+  } catch(e) { showToast('❌ خطأ: '+e.message); }
+}
+
+async function deleteDistribution(id) {
+  if (!confirm('حذف هذا التوزيع؟')) return;
+  try {
+    await sbDelete('distributions', id);
+    state.distributions = state.distributions.filter(d=>d.id!==id);
+    renderDistributions(); updateStats(); showToast('🗑️ تم الحذف');
+  } catch(e) { showToast('❌ خطأ: '+e.message); }
+}
+
+function loadMemberEdit() {
+  const id=document.getElementById('em-select').value;
+  const m=state.members.find(m=>m.id==id); if(!m) return;
+  document.getElementById('em-role').value=m.role;
+  document.getElementById('em-phone').value=m.phone||'';
+  document.getElementById('em-notes').value=m.notes||'';
+}
+async function saveMemberEdit() {
+  const id=parseInt(document.getElementById('em-select').value);
+  const m=state.members.find(m=>m.id===id); if(!m) return;
+  const data={ role:document.getElementById('em-role').value, phone:document.getElementById('em-phone').value, notes:document.getElementById('em-notes').value };
+  try {
+    await sbUpdate('members', id, data);
+    Object.assign(m, data);
+    closeModal('editMember'); renderMembers(); showToast('✅ تم تحديث بيانات العضو');
+  } catch(e) { showToast('❌ خطأ: '+e.message); }
+}
+
+function renderReports() {
+  const g=document.getElementById('reports-grid');
+  const col=state.transactions.filter(t=>t.type==='تحصيل'||t.type==='تبرع').reduce((s,t)=>s+Number(t.amount),0);
+  const exp=state.transactions.filter(t=>t.type==='مصروف').reduce((s,t)=>s+Number(t.amount),0);
+  const dist=state.distributions.reduce((s,d)=>s+Number(d.amount),0);
+  const bal=col-dist-exp;
+  const memberDist=state.members.map(m=>({name:m.name,count:state.distributions.filter(d=>d.member_id==m.id).length,txCount:state.transactions.filter(t=>t.member_id==m.id).length})).sort((a,b)=>b.count-a.count);
+  g.innerHTML=`
+    <div class="form-box" style="grid-column:1/-1">
+      <div style="font-size:14px;font-weight:700;color:var(--gold-light);margin-bottom:14px">💰 الملخص المالي</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;text-align:center">
+        <div><div style="font-size:24px;font-weight:900;color:#4caf82">${col.toLocaleString('ar-EG')}</div><div style="font-size:12px;color:var(--text-muted)">إجمالي المحصّل</div></div>
+        <div><div style="font-size:24px;font-weight:900;color:var(--gold)">${dist.toLocaleString('ar-EG')}</div><div style="font-size:12px;color:var(--text-muted)">إجمالي الموزّع</div></div>
+        <div><div style="font-size:24px;font-weight:900;color:#e07060">${exp.toLocaleString('ar-EG')}</div><div style="font-size:12px;color:var(--text-muted)">المصروفات</div></div>
+        <div><div style="font-size:24px;font-weight:900;color:#80bfdf">${bal.toLocaleString('ar-EG')}</div><div style="font-size:12px;color:var(--text-muted)">الرصيد المتبقي</div></div>
+      </div>
+    </div>
+    <div class="form-box">
+      <div style="font-size:14px;font-weight:700;color:var(--gold-light);margin-bottom:14px">👥 نشاط الأعضاء</div>
+      ${memberDist.map((m,i)=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:28px;height:28px;border-radius:50%;background:${COLORS[i%8]}33;color:${COLORS[i%8]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${INITIALS(m.name)}</div>
+            <span style="font-size:13px">${m.name}</span>
+          </div>
+          <div><span class="badge badge-gold">${m.count} توزيع</span> <span class="badge badge-green">${m.txCount} معاملة</span></div>
+        </div>`).join('')}
+    </div>
+    <div class="form-box">
+      <div style="font-size:14px;font-weight:700;color:var(--gold-light);margin-bottom:14px">🤲 إحصاءات المستفيدين</div>
+      ${[['أرملة','🪦'],['فقير','💔'],['مريض','🏥'],['يتيم','👶'],['مطلقة','📄'],['أخرى','📋']].map(([s,ic])=>`
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span>${ic} ${s}</span>
+          <strong style="color:var(--gold)">${state.beneficiaries.filter(b=>b.status===s).length}</strong>
+        </div>`).join('')}
+      <div style="margin-top:12px;text-align:center;color:var(--text-muted);font-size:12px">الإجمالي: ${state.beneficiaries.length} مستفيد</div>
+    </div>`;
+}
+
+// ======== INIT ========
+async function init() {
+  try {
+    const [members, beneficiaries, transactions, distributions] = await Promise.all([
+      sbGet('members'), sbGet('beneficiaries'), sbGet('transactions'), sbGet('distributions')
+    ]);
+    state.members = members;
+    state.beneficiaries = beneficiaries;
+    state.transactions = transactions;
+    state.distributions = distributions;
+    setConn(true);
+    renderAll();
+    document.getElementById('loader').style.display='none';
+  } catch(e) {
+    setConn(false);
+    document.getElementById('loader').innerHTML = `
+      <div style="text-align:center;color:var(--text-muted)">
+        <div style="font-size:48px;margin-bottom:16px">❌</div>
+        <div style="font-size:16px;color:var(--red-light);margin-bottom:8px">فشل الاتصال بقاعدة البيانات</div>
+        <div style="font-size:13px;margin-bottom:20px">${e.message}</div>
+        <button class="btn btn-primary" onclick="init()">🔄 إعادة المحاولة</button>
+      </div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
